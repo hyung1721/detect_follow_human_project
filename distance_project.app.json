@@ -1,0 +1,103 @@
+{
+    "name": "distance_project",
+    "modules": [
+        "engine_tcp_udp",
+        "//apps/distance_project:components",
+        "sight"
+    ],
+    "graph": {
+        "nodes": [
+            {
+                "name": "interface",
+                "components": [
+                    {
+                        "name": "message_ledger",
+                        "type": "isaac::alice::MessageLedger"
+                    },
+                    {
+                        "name": "output",
+                        "type": "isaac::alice::TcpPublisher"
+                    },
+                    {
+                        "name": "input",
+                        "type": "isaac::alice::TcpSubscriber"
+                    },
+                    {
+                        "name": "time_sync",
+                        "type": "isaac::alice::TimeSynchronizer"
+                    }
+                ]
+            },
+            {
+                "name": "manipulate_image",
+                "components": [
+                    {
+                        "name": "message_ledger",
+                        "type": "isaac::alice::MessageLedger"
+                    },
+                    {
+                        "name": "main",
+                        "type": "isaac::ManipulateImageNode"
+                    }
+                ]
+            },
+            {
+                "name": "manipulate_boundingboxes",
+                "components": [
+                    {
+                        "name": "message_ledger",
+                        "type": "isaac::alice::MessageLedger"
+                    },
+                    {
+                        "name": "main",
+                        "type": "isaac::ManipulateBoundingBoxesNode"
+                    }
+                ]
+            }
+        ],
+        "edges": [
+            {
+                "source": "interface/input/color",
+                "target": "manipulate_image/main/incoming_image"
+            },
+            {
+                "source": "manipulate_image/main/outgoing_bounding_box",
+                "target": "manipulate_boundingboxes/main/incoming_bounding_box"
+            },
+            {
+                "source": "manipulate_boundingboxes/main/outgoing_torque",
+                "target": "interface/output/incoming_torque"
+            },
+            {
+                "source": "interface/input/rangescan",
+                "target": "manipulate_boundingboxes/main/incoming_rangescan"
+            },
+            {
+                "source": "interface/input/angular_velocity",
+                "target": "manipulate_boundingboxes/main/incoming_angular_velocity"
+            }
+        ]
+    },
+    "config": {
+        "interface": {
+            "output": {
+                "port": 55001
+            },
+            "input" : {
+                "port": 55000,
+                "host": "localhost"
+            }
+        },
+        "manipulate_image": {
+            "main": {
+                "server_ip_addr": "127.0.0.1",
+                "server_port": "8888"
+            }
+        },
+        "manipulate_boundingboxes": {
+            "main": {
+                "tick_period": "5Hz"
+            }
+        }
+    }
+}
